@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>form</title>
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
     <h1>this is student name list</h1>
@@ -11,7 +12,9 @@
     <a href="/add">add student</a>
     <!-- read operation  -->
     <% studentList.forEach(s => { %>
-        <li><%= s.name%> </li>
+        <li><%= s.name%> 
+        <a href="/edit/<%=s.id%>">edit</a>
+        <a href="/delete/<%=s.id%>">delete</a></li>
     <% }) %>
    
     

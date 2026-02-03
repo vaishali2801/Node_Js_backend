@@ -47,21 +47,30 @@
 // })
 
 import express from "express"
+import path from "path";
+import { fileURLToPath } from "url";
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({extended :true}));
 
+const __fileName = fileURLToPath(import.meta.url);
+const __dirName = path.dirname(__fileName);
+
+console.log("filename",__fileName);
+console.log("folder",__dirName);
+
+app.use(express.static(path.join(__dirName,"public")));
 app.set("view engine","ejs");
 
 let studentList = [
-    {   id:"01",
+    {   id:1,
         name:"vaishali"  
     },
-    {   id:"02",
+    {   id:2,
         name:"Bhoomi"  
     },
-    {   id:"03",
+    {   id:3,
         name:"Krishna"  
     },
 ]
@@ -83,9 +92,39 @@ app.post("/add",(req,res)=>{
     }
 
     studentList.push(newStudent);
-    res.redirect("/")//when we submit data redirect home page
-})
+    res.redirect("/");//when we submit data redirect home page
+});
 
+app.get("/edit/:id",(req,res)=>{
+    const id = parseInt(req.params.id);
+
+    let student = studentList.find((s)=>s.id===id);
+    console.log(student);
+    if(!student){
+        return res.status(404).json("not found");
+    }
+    res.render("edit",{student});
+
+})
+app.post("/edit/:id",(req,res)=>{
+    const id = parseInt(req.params.id);
+    const student = studentList.find((s)=>s.id===id);
+    if(!student){
+        return res.status(404).json("student not found");
+    }
+    const {name} = req.body;
+    student.name = name;
+    res.redirect("/")
+});
+app.get("/delete/:id",(req,res)=>{
+    const id = parseInt(req.params.id);
+    const student = studentList.find((s)=>s.id===id);
+    if(!student){
+        return res.status(404).json("not found");
+    }
+    studentList = studentList.filter((s)=>s.id !== id);
+    res.redirect("/");
+})
 const port = 5001
 
 app.listen(port,()=>{
