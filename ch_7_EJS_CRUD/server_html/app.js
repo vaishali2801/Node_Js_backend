@@ -125,7 +125,7 @@ app.get("/delete/:id",(req,res)=>{
     studentList = studentList.filter((s)=>s.id !== id);
     res.redirect("/");
 })
-const port = 5001
+const port = 5001;
 
 app.listen(port,()=>{
     console.log("server running in port!!!",port)
