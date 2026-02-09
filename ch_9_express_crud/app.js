@@ -61,6 +61,52 @@ app.post("/addTask",(req,res)=>{
         newTaskData
     })
 })
+// update task using patch
+app.patch("/updateTask/:id",(req,res)=>{
+    const id = parseInt(req.params.id);
+
+    const taskFound = taskList.find((t)=>t.id === id);
+    if (!taskFound) {
+        return res.status(404).json({ message: "Task not found" });
+    }
+    const {task,description} = req.body;
+    if (task) {
+        taskFound.task = task;
+    }
+    if (description) {
+        taskFound.description = description;
+    }
+    res.status(200).json({message:"successfully updated",taskFound});
+
+});
+// update task using put
+app.put("/updateTasks/:id",(req,res)=>{
+    const id = Number(req.params.id);
+
+    const index = taskList.findIndex((t)=>t.id===id);
+
+    if(!index){
+        return res.status(404).json("task data not found with this id");
+    }
+    const {task,description} = req.body;
+
+    taskList[index] = {...taskList[index],task,description}
+
+    res.status(200).json({message:"task data updated successfully",task:taskList[index]});
+
+});
+app.delete("/deleteTask/:id",(req,res)=>{
+    const id = Number(req.params.id);
+
+    const index = taskList.findIndex((t)=>t.id===id);
+
+    if(index === -1 ){
+        return res.status(404);
+    }
+
+    taskList.splice( index , 1 );
+    res.status(200).json({message:"deleted task successfully"})
+})
 
 //place AFTER all routes
 app.use((req,res,next)=>{
