@@ -2,6 +2,7 @@
 import express from "express";
 import connectDB from "./db/mongoose.js";
 import HttpError from "./middleware/HttpError.js";
+import studentRoute from "./route/studentRoute.js";
 
 const app = express();
 app.use(express.json());
@@ -11,7 +12,7 @@ const port = 5002;
 app.get("/", (req, res) => {
     res.status(200).json("hello from server");
 });
-
+app.use("/add", studentRoute);
 //undefined route
 app.use((req,res,next)=>{
     next(new HttpError("route not found",404));
