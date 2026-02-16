@@ -6,6 +6,7 @@ import studentRoute from "./route/studentRoute.js";
 
 const app = express();
 app.use(express.json());
+app.use("/student", studentRoute);
 
 const port = 5002;
 
