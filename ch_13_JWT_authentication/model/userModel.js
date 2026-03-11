@@ -1,6 +1,6 @@
 
 import mongoose from "mongoose";
-
+import bcrypt from "bcryptjs";
 const userSchema = mongoose.Schema({
     name:{
         type:String,
@@ -29,6 +29,25 @@ const userSchema = mongoose.Schema({
     }
 
 },{timestamps:true});
+
+userSchema.pre("save",async function(){
+    const user = this;
+    if(user.isModified("password")){
+        user.password = await bcrypt.hash(user.password,8);
+    }
+});
+
+userSchema.statics.findByCredentials = async function(email,password){
+    const user = await User.findOne({email});
+    if(!user){
+        throw new Error("unable to login");
+    }
+    const isMatched = await bcrypt.compare(password,user.password);
+    if(!isMatched){
+        throw new Error("unable to login");
+    }
+    return user;
+}
 
 const User = mongoose.model("User",userSchema);
 export default User; 
