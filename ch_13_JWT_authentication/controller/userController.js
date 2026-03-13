@@ -10,8 +10,9 @@ const addUser = async(req,res,next)=>{
         email,
         password
     });
+    const token = await newUser.generateAuthToken();
     await newUser.save();
-    res.status(201).json({message:"user added successfully",newUser});
+    res.status(201).json({message:"user added successfully",newUser,token});
     } catch (error) {
         next(new HttpError(error.message, 500));
     }
@@ -23,7 +24,8 @@ const login = async(req,res,next)=>{
         if(!user){
             throw new Error("unable to login");
         }
-        res.status(200).json({success:true,message:"successfully login!!",user});
+        const token = await user.generateAuthToken();
+        res.status(200).json({success:true,message:"successfully login!!",user,token});
     } catch (error) {
         next(new HttpError(error.message, 500));
     }
@@ -84,4 +86,16 @@ const updateUser = async(req,res,next)=>{
         next(new HttpError(error.message, 500));
     }
 }
-export default {addUser,login,getAllUser,getUserById,deleteUser,updateUser};
+
+const authLogin = async(req,res,next)=>{
+    try {
+        const user = req.user;
+        if(!user){
+            return next(new HttpError("unable to login"),401);
+        }
+        res.status(200).json({success:true,user});
+    } catch (error) {
+        next(new HttpError(error.message, 500));    
+    }
+}
+export default {addUser,login,getAllUser,getUserById,deleteUser,updateUser,authLogin};
