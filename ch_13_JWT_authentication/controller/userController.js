@@ -98,4 +98,24 @@ const authLogin = async(req,res,next)=>{
         next(new HttpError(error.message, 500));    
     }
 }
-export default {addUser,login,getAllUser,getUserById,deleteUser,updateUser,authLogin};
+
+const LogOut = async(req,res,next)=>{
+    try {
+        req.user.tokens = req.user.tokens.filter((t)=>t.token != req.token);
+        req.user.save();
+        res.status(200).json({message:"user logout successfully"});
+    } catch (error) {
+        next(new HttpError(error.message, 500));
+    }
+}
+const LogOutAll = async(req,res,next)=>{
+    try {
+        req.user.tokens = [];
+        req.user.save();
+        res.status(200).json({message:"user logout from all device successfully"});
+    } catch (error) {
+        next(new HttpError(error.message, 500));
+    }
+}
+
+export default {addUser,login,getAllUser,getUserById,deleteUser,updateUser,authLogin,LogOut,LogOutAll};

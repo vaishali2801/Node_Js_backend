@@ -10,10 +10,11 @@ router.post("/login",userController.login);
 router.get("/allUser",userController.getAllUser);
 
 router.get("/authLogin",auth,userController.authLogin);
+router.post("/LogOut",auth,userController.LogOut);
+router.post("/LogOutAll",auth,userController.LogOutAll);
 
 router.get("/:id",userController.getUserById);
 router.delete("/:id",userController.deleteUser);
 router.patch("/:id",userController.updateUser);
-
 
 export default router;
