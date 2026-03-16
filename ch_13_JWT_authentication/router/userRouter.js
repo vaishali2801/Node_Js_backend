@@ -12,9 +12,9 @@ router.get("/allUser",userController.getAllUser);
 router.get("/authLogin",auth,userController.authLogin);
 router.post("/LogOut",auth,userController.LogOut);
 router.post("/LogOutAll",auth,userController.LogOutAll);
+router.delete("/delete",auth,userController.deleteUser);
+router.patch("/update",auth,userController.updateUser);
 
 router.get("/:id",userController.getUserById);
-router.delete("/:id",userController.deleteUser);
-router.patch("/:id",userController.updateUser);
 
 export default router;

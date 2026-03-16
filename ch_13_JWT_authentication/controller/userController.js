@@ -54,10 +54,8 @@ const getUserById = async(req,res,next)=>{
 }
 const deleteUser = async(req,res,next)=>{
     try {
-        const user = await User.findByIdAndDelete(req.params.id);
-        if(!user){
-            return next(new HttpError("user not found ", 404));
-        }
+        const id = req.user._id;
+        const user = await User.findByIdAndDelete(id);
         res.status(200).json({message:"user deleted successfully",user});
     } catch (error) {
         next(new HttpError(error.message, 500));
@@ -65,23 +63,23 @@ const deleteUser = async(req,res,next)=>{
 }
 const updateUser = async(req,res,next)=>{
     try {
-        const user = await User.findById(req.params.id);
+        const user = req.user;
         if(!user){
             return next(new HttpError("user not found",404));
         }
         const updates = Object.keys(req.body);
-        const allowedUpdates = ["name","email","password"];
-        const isValid = updates.every((f)=>{
-            return allowedUpdates.includes(f);
+        const allowedUpdates = ["name","password"];
+        const isValid = updates.every((field)=>{
+            return allowedUpdates.includes(field);
         });
         if(!isValid){
             return next(new HttpError("only allowed field can be updated",400));
         }
-        updates.forEach((u)=>{
-            user[u] = req.body[u];
+        updates.forEach((update)=>{
+            user[update] = req.body[update];
         });
         await user.save();
-        res.status(200).json({message:"user updated successfully",user});
+        res.status(200).json({message:"user data updated successfully",user});
     } catch (error) {
         next(new HttpError(error.message, 500));
     }
