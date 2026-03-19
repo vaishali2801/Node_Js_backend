@@ -7,17 +7,29 @@ import authRouter from "./routes/authrouter.js";
 
 import express from "express";
 import passport from "./config/passport.js";
-
+import session from "express-session";
 
 const app = express();
 //convert to object
 app.use(express.json());
 
 const port = process.env.PORT || 5001;
+app.use(session({
+    secret:process.env.SESSION_SECRET,
+    resave:false,
+    saveUninitialized:true,
+    cookie:{
+        secure:false,
+        maxAge:24*60*60*1000,
+    }
+}))
 //for passport
 app.use(passport.initialize());
+app.use(passport.session());
 //for router
 app.use("/auth",authRouter);
+
+
 //for ejs
 app.set("view engine", "ejs");
 

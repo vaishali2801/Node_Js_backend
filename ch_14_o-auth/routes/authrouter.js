@@ -11,7 +11,10 @@ router.get("/google",passport.authenticate("google",{
     scope:["email","profile"]
 }));
 
-router.get("/google/redirect",passport.authenticate("google"),(req, res) => {
+router.get("/google/redirect",passport.authenticate("google",{
+    failureRedirect:"/",
+    session:false,
+}),(req, res) => {
         res.send("Login Successful");
     }
 );
