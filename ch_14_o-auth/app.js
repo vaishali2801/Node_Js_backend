@@ -4,7 +4,7 @@ dotenv.config({ path: "./.env" });
 import connectDB from "./config/db.js";
 import HttpError from "./middleware/HttpError.js";
 import authRouter from "./routes/authrouter.js";
-
+import authRouters from "./routes/profileroutes.js"
 import express from "express";
 import passport from "./config/passport.js";
 import session from "express-session";
@@ -28,6 +28,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 //for router
 app.use("/auth",authRouter);
+app.use("/profile",authRouters)
 
 
 //for ejs
@@ -35,7 +36,7 @@ app.set("view engine", "ejs");
 
 
 app.get("/", (req, res) => {
-    res.render("home")
+    res.render("home",{user:req.user});
 });
 
 //undefined error
