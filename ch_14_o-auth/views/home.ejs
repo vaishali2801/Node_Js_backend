@@ -8,6 +8,12 @@
 <body>
     
     <h1>Welcome to home page</h1>
-    <a href="/auth/login">got to login page</a>
+    <% if(user){ %>
+        <a href="profile">profile page
+        </a>
+    <%}else{%>
+        <a href="/auth/login">got to login page</a>
+    <%}%>
+    
 </body>
 </html>

@@ -8,29 +8,33 @@ import User from "../model/userModel.js";
 passport.use(
     new GoogleStrategy(
         {
-            clientID:process.env.CLIENT_ID,
-            clientSecret:process.env.CLIENT_SECRET,
-            callbackURL:"/auth/google/redirect"
-            
+            clientID: process.env.CLIENT_ID,
+            clientSecret: process.env.CLIENT_SECRET,
+            callbackURL: "/auth/google/redirect"
+
         },
-        async(accessToken, refreshToken, profile, done) => {
-            let user = await User.findOne({googleID: profile.id });
-            if(!user){
+        async (accessToken, refreshToken, profile, done) => {
+            let user = await User.findOne({ googleID: profile.id });
+            if (!user) {
                 user = await User.create({
-                    name:profile.displayName,
-                    email:profile.emails?.[0].value,
-                    googleID:profile.id
-            })
+                    name: profile.displayName,
+                    email: profile.emails?.[0].value,
+                    googleID: profile.id
+                })
             }
-            return done(null, profile);
+            return done(null, user);
         }
     )
 );
-passport.serializeUser((user,done)=>{
-    done(null,user.id);
+passport.serializeUser((user, done) => {
+    done(null, user.id);
 });
-passport.deserializeUser(async(id,done)=>{
-    const validUser = await User.findOne(id);
-    done(validUser);
+passport.deserializeUser(async (id, done) => {
+    try {
+        const validUser = await User.findById(id);
+        done(null,validUser);
+    } catch (error) {
+        done(error,null);
+    }
 })
 export default passport;

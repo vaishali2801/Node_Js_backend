@@ -4,7 +4,7 @@ dotenv.config({ path: "./.env" });
 import connectDB from "./config/db.js";
 import HttpError from "./middleware/HttpError.js";
 import authRouter from "./routes/authrouter.js";
-import authRouters from "./routes/profileroutes.js"
+import authprofile from "./routes/profileroutes.js"
 import express from "express";
 import passport from "./config/passport.js";
 import session from "express-session";
@@ -14,21 +14,23 @@ const app = express();
 app.use(express.json());
 
 const port = process.env.PORT || 5001;
+
 app.use(session({
     secret:process.env.SESSION_SECRET,
     resave:false,
     saveUninitialized:true,
     cookie:{
         secure:false,
-        maxAge:24*60*60*1000,
+        maxAge:24 * 60 * 60 *1000,
     }
-}))
+}));
 //for passport
 app.use(passport.initialize());
+//for session
 app.use(passport.session());
 //for router
 app.use("/auth",authRouter);
-app.use("/profile",authRouters)
+app.use("/profile",authprofile);
 
 
 //for ejs
