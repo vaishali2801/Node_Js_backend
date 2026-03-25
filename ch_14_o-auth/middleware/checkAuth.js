@@ -4,7 +4,7 @@ import HttpError from "./HttpError.js";
 const checkAuth = async(req,res,next)=>{
     try {
         if(!req.user){
-            res.render("login");
+         return res.redirect("/auth/login")
         // return next(new HttpError("please login"));
     }
     next();

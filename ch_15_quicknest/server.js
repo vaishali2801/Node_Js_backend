@@ -1,12 +1,16 @@
 import dotenv from "dotenv";
-import express from "express";
-import HttpError from "./middleware/HttpError";
 dotenv.config({ path: "./.env" });
+import express from "express";
+import connectDB from "./config/db.js";
+import HttpError from "./middleware/HttpError.js";
+import router from "./routes/userRoutes.js";
 
 const app = express();
 
 //convert json data
 app.use(express.json());
+
+app.use("/user",router);
 
 app.get("/",(req,res)=>{
     res.json("hello form server");
@@ -24,6 +28,7 @@ app.use((error,req,res,next)=>{
 
 })
 const port = process.env.port || 5001;
+console.log("port",port);
 
 async function startServer() {
     try {
