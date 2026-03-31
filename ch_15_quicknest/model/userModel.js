@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
-import joi from "joi";
 import jwt from "jsonwebtoken";
 
 const userSchema = new mongoose.Schema({
@@ -22,10 +21,16 @@ const userSchema = new mongoose.Schema({
         type:Number,
         required:true,
     },
+    profilePic:{
+        type:String
+    },
     role:{
         type:String,
         enum:["customer","provider","admin","super_admin"],
         default:"customer"
+    },
+    cloudinaryID:{
+        type:String,
     },
     isVerified:{
         type:Boolean,
@@ -89,7 +94,7 @@ userSchema.methods.toJSON = function(){
     delete userObject.password;
     delete userObject.createAt;
     delete userObject.updateAt;
-    delete userObject._v;
+    // delete userObject._v;
     delete userObject.tokens;
 
     return userObject;

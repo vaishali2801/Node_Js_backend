@@ -9,27 +9,27 @@ const app = express();
 
 //convert json data
 app.use(express.json());
-
+//routes
 app.use("/user",router);
-
+//server
 app.get("/",(req,res)=>{
     res.json("hello form server");
 });
-
+//undefined route handling
 app.use((req,res,next)=>{
     next(new HttpError("requested route not found",404));
 })
-
+//centralized error handling
 app.use((error,req,res,next)=>{
-    if(!res.headersSent){
+    if(res.headersSent){
         return next(error);
     }
     res.status(error.statusCode || 500).json({ message: error.message || "internal server error" });
 
 })
+//port
 const port = process.env.port || 5001;
-console.log("port",port);
-
+//start server
 async function startServer() {
     try {
         await connectDB();
@@ -41,4 +41,5 @@ async function startServer() {
         process.exit(1);
     }
 }
+//call
 startServer();

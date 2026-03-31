@@ -9,13 +9,15 @@ const addUser = async(req ,res ,next)=>{
             name,
             email,
             password,
+            profilePic:req.file ? req.file.path : null,
+            cloudinary_id: req.file ? req.file.filename : null,
             role,
             phone,
         };
         
         const user = new User(newUser);
-        const token = await user.generateAuthToken();
         await user.save();
+        const token = await user.generateAuthToken();
         res.status(201).json({success:true,message:"added successfully!",user,token});
     } catch (error) {
         next(new HttpError(error.message,500));
@@ -75,11 +77,50 @@ const allUser = async(req,res,next)=>{
     try {
         const users = await User.find({});
         if(users.length===0){
-            res.status(200).json({ message: "no product data found" });
+            return next(new HttpError("user not found",404));
         }
         res.status(200).json({success:true,message:"user data fetched successfully!!",users});
     } catch (error) {
         next(new HttpError(error.message, 500));
     }
 }
-export default {addUser,login,authLogin,logOut,logOutAll,allUser};
+
+const updateUser = async(req,res,next)=>{
+    try {
+        const user = req.user;
+        if(!user){
+            return next(new HttpError("user not found",404));
+        }
+
+        const updates = Object.keys(req.body);
+
+        const allowed = ["name","password","phone"];
+
+        const isValid = updates.every((field)=>{
+            return allowed.includes(field);
+        })
+        if(!isValid){
+            return next(new HttpError("only allowed field can be updated",400));
+        }
+        updates.forEach((update)=>{
+            user[update] = req.body[update];
+        });
+        await user.save();
+        res.status(200).json({success:true,message:"user data updated successfully!",user})
+    } catch (error) {
+        next(new HttpError(error.message,500));
+    }
+}
+const deleteUser = async(req,res,next)=>{
+    try {
+        const user = req.user;
+        if(!user){
+            return next(new HttpError("user not found",404));
+        }
+        await user.deleteOne();
+        res.status(200).json({success:true,message:"user delete successfully!"})
+    } catch (error) {
+        next(new HttpError(error.message,500));
+    }
+}
+export default {addUser,login,authLogin,logOut,logOutAll,allUser,updateUser,deleteUser};
