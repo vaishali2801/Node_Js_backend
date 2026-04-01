@@ -6,9 +6,10 @@ const validate = (schema) => (req, res, next) => {
             abortEarly: true,
             allowUnknown: false,
             stripUnknown: true,
+            // convert: false ,
         })
         if (error) {
-            return next(new HttpError(error.details[0].message, 404));
+            return next(new HttpError(error.details[0].message, 400));
         }
         req.body = value;
         next();

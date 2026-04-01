@@ -4,6 +4,7 @@ import express from "express";
 import connectDB from "./config/db.js";
 import HttpError from "./middleware/HttpError.js";
 import router from "./routes/userRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
 
 const app = express();
 
@@ -11,6 +12,7 @@ const app = express();
 app.use(express.json());
 //routes
 app.use("/user",router);
+app.use("/admin",adminRoutes);
 //server
 app.get("/",(req,res)=>{
     res.json("hello form server");
