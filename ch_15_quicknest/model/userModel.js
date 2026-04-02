@@ -29,7 +29,7 @@ const userSchema = new mongoose.Schema({
         enum:["customer","provider","admin","super_admin"],
         default:"customer"
     },
-    cloudinaryID:{
+    cloudinary_id:{
         type:String,
     },
     isVerified:{
