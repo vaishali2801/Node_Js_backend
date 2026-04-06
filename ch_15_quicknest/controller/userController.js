@@ -28,10 +28,12 @@ const login = async (req, res, next) => {
     try {
         const { email, password } = req.body;
         const user = await User.findByCredentials(email, password);
-        const token = await user.generateAuthToken();
+
         if (!user) {
-            throw new Error("unable to login");
+            return next(new HttpError("unable to login", 400));
         }
+
+        const token = await user.generateAuthToken();
         res.status(200).json({ success: true, message: "successfully login!!", user, token });
     } catch (error) {
         next(new HttpError(error.message, 500));
@@ -88,7 +90,9 @@ const allUser = async (req, res, next) => {
 
 const updateUser = async (req, res, next) => {
     try {
-        const user = req.user;
+        const allowedUser = req.params.id || req.user._id;
+
+        const user = await User.findById(allowedUser);
         if (!user) {
             return next(new HttpError("user not found", 404));
         }
@@ -97,14 +101,21 @@ const updateUser = async (req, res, next) => {
 
         const allowed = ["name", "password", "phone"];
 
-        const isValid = updates.every((field) => {
-            return allowed.includes(field);
-        })
+        const isValid = updates.every((field) => allowed.includes(field));
+
         if (!isValid) {
             return next(new HttpError("only allowed field can be updated", 400));
         }
+        if (
+            req.user.role !== "admin" &&
+            req.user.role !== "super_admin" &&
+            req.user._id.toString() !== user._id.toString()) {
+            return next(new HttpError("access denied", 403));
+        }
         updates.forEach((update) => {
-            user[update] = req.body[update];
+            if (update !== "password") {
+                user[update] = req.body[update];
+            }
         });
         if (req.file) {
             if (user.cloudinary_id) {
@@ -113,8 +124,6 @@ const updateUser = async (req, res, next) => {
             user.profilePic = req.file.path;
             user.cloudinary_id = req.file.filename;
         }
-
-        console.log(user.cloudinary_id);
         await user.save();
         res.status(200).json({ success: true, message: "user data updated successfully!", user })
     } catch (error) {
@@ -123,14 +132,22 @@ const updateUser = async (req, res, next) => {
 }
 const deleteUser = async (req, res, next) => {
     try {
-        const user = req.user;
+        const allowedUser = req.params.id || req.user._id;
+        const user = await User.findById(allowedUser);
         if (!user) {
             return next(new HttpError("user not found", 404));
+        }
+        if (
+            req.user.role !== "admin" &&
+            req.user.role !== "super_admin" &&
+            req.user._id.toString() !== user._id.toString()) {
+            return next(new HttpError("access denied", 403));
         }
         if (user.cloudinary_id) {
             await cloudinary.uploader.destroy(user.cloudinary_id);
         }
         await user.deleteOne();
+
         res.status(200).json({ success: true, message: "user delete successfully!" })
     } catch (error) {
         next(new HttpError(error.message, 500));

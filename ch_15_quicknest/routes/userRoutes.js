@@ -13,7 +13,6 @@ router.post("/login",userController.login);
 router.get("/authLogin",auth,userController.authLogin);
 router.post("/logOut",auth,userController.logOut);
 router.post("/logOutAll",auth,userController.logOutAll);
-router.get("/allUser",auth,userController.allUser);
 router.patch("/update",auth,upload.single("profilePic"),validate(updateUserSchema),userController.updateUser);
 router.delete("/delete",auth,userController.deleteUser);
 
