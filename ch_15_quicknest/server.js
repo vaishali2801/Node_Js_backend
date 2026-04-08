@@ -47,7 +47,7 @@ async function startServer() {
 }
 //call
 startServer();
-async function manual() {
+async function check() {
     try {
         // const service = await services.findById("69d63c62c1e3174df31ef14c");
         // console.log(service);
@@ -57,18 +57,15 @@ async function manual() {
         //manually
         // const service = await services.findById("69d63c62c1e3174df31ef14c").populate("category");
         // console.log(service);
-
+        
         //virtual
         const category = await Category
-            .findById("69d63a7ac1e3174df31ef124")
+            .findById("69d63b03c1e3174df31ef12c")
             .populate("services");
-        const service = await services
-            .findById("69d63c62c1e3174df31ef14c")
-            .populate("category");
 
-        console.log(category);
+        console.log(category.services);
     } catch (error) {
         console.error(error);
     }
 }
-manual();
+check();
