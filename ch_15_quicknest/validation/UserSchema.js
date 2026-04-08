@@ -59,6 +59,7 @@ export const updateUserSchema = UserSchema
     .fork(["email","role"],(f)=>f.forbidden()) //can't update
     .messages({
         "object.missing": "At least one field (name, password, phone) is required for update"
-    });
+});
+
 
 export default UserSchema;

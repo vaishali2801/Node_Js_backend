@@ -6,7 +6,7 @@ const checkRole =(...Roles) => async(req,res ,next )=>{
             return next(new HttpError("unauthorazation",401))
         }
         if(!Roles.includes(req.user.role)){
-            return next(new HttpError("forbidden dined",403))
+            return next(new HttpError("Access denied: insufficient permissions",403))
         }
         next();
     } catch (error) {

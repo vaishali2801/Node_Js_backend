@@ -1,17 +1,23 @@
 
 import HttpError from "../middleware/HttpError.js";
-import Category from "../model/category.js";
 
-const addBlog = async (req, res, next) => {
+import Category from "../model/Category.js";
+
+const add = async (req, res, next) => {
     try {
         const { name,description } = req.body;
-        const newCategory =await Category.create({
+        const existingCategory = await Category.findOne({name});
+        if (existingCategory) {
+            return next(new HttpError("category already existed", 500));
+        }
+        const newCategory =new Category({
             name,
             description
         });
+        await newCategory.save();
         res.status(201).json({ success: true,message:" added successfully", newCategory });
     } catch (error) {
         next(new HttpError(error.message, 500));
     }
 };
-export default {addBlog};
+export default {add};

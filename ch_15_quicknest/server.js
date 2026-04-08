@@ -5,25 +5,27 @@ import connectDB from "./config/db.js";
 import HttpError from "./middleware/HttpError.js";
 import router from "./routes/userRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
+import services from "./model/Services.js";
+import Category from "./model/Category.js";
 
 const app = express();
 
 //convert json data
 app.use(express.json());
 //routes
-app.use("/user",router);
-app.use("/admin",adminRoutes);
+app.use("/user", router);
+app.use("/admin", adminRoutes);
 //server
-app.get("/",(req,res)=>{
+app.get("/", (req, res) => {
     res.json("hello form server");
 });
 //undefined route handling
-app.use((req,res,next)=>{
-    next(new HttpError("requested route not found",404));
+app.use((req, res, next) => {
+    next(new HttpError("requested route not found", 404));
 })
 //centralized error handling
-app.use((error,req,res,next)=>{
-    if(res.headersSent){
+app.use((error, req, res, next) => {
+    if (res.headersSent) {
         return next(error);
     }
     res.status(error.statusCode || 500).json({ message: error.message || "internal server error" });
@@ -45,3 +47,28 @@ async function startServer() {
 }
 //call
 startServer();
+async function manual() {
+    try {
+        // const service = await services.findById("69d63c62c1e3174df31ef14c");
+        // console.log(service);
+        // const AllServices = await Category.findById("69d63a7ac1e3174df31ef124");
+        // console.log(AllServices);
+
+        //manually
+        // const service = await services.findById("69d63c62c1e3174df31ef14c").populate("category");
+        // console.log(service);
+
+        //virtual
+        const category = await Category
+            .findById("69d63a7ac1e3174df31ef124")
+            .populate("services");
+        const service = await services
+            .findById("69d63c62c1e3174df31ef14c")
+            .populate("category");
+
+        console.log(category);
+    } catch (error) {
+        console.error(error);
+    }
+}
+manual();
