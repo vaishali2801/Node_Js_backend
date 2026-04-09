@@ -2,11 +2,12 @@ import dotenv from "dotenv";
 dotenv.config({ path: "./.env" });
 import express from "express";
 import connectDB from "./config/db.js";
+
 import HttpError from "./middleware/HttpError.js";
+
 import router from "./routes/userRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
-import services from "./model/Services.js";
-import Category from "./model/Category.js";
+import bookingRouter from "./routes/bookingRoutes.js";
 
 const app = express();
 
@@ -15,6 +16,7 @@ app.use(express.json());
 //routes
 app.use("/user", router);
 app.use("/admin", adminRoutes);
+app.use("/booking", bookingRouter);
 //server
 app.get("/", (req, res) => {
     res.json("hello form server");
@@ -47,25 +49,27 @@ async function startServer() {
 }
 //call
 startServer();
-async function check() {
-    try {
-        // const service = await services.findById("69d63c62c1e3174df31ef14c");
-        // console.log(service);
-        // const AllServices = await Category.findById("69d63a7ac1e3174df31ef124");
-        // console.log(AllServices);
+// import services from "./model/Services.js";
+// import Category from "./model/Category.js";
+// async function check() {
+//     try {
+//         // const service = await services.findById("69d63c62c1e3174df31ef14c");
+//         // console.log(service);
+//         // const AllServices = await Category.findById("69d63a7ac1e3174df31ef124");
+//         // console.log(AllServices);
 
-        //manually
-        // const service = await services.findById("69d63c62c1e3174df31ef14c").populate("category");
-        // console.log(service);
+//         //manually
+//         // const service = await services.findById("69d63c62c1e3174df31ef14c").populate("category");
+//         // console.log(service);
         
-        //virtual
-        const category = await Category
-            .findById("69d63b03c1e3174df31ef12c")
-            .populate("services");
+//         //virtual
+//         const category = await Category
+//             .findById("69d63b03c1e3174df31ef12c")
+//             .populate("services");
 
-        console.log(category.services);
-    } catch (error) {
-        console.error(error);
-    }
-}
-check();
+//         console.log(category.services);
+//     } catch (error) {
+//         console.error(error);
+//     }
+// }
+// check();
