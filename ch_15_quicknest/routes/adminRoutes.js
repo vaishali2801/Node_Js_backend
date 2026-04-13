@@ -17,6 +17,16 @@ router.get("/allUser", auth,checkRole("admin", "super_admin"), userController.al
 
 //category
 router.post("/addCategory",auth,checkRole("admin","super_admin"),validate(categorySchema),categoryController.add);
+router.get("/category/getAllCategory",auth,checkRole("admin","super_admin"),categoryController.getAllCategory);
+router.get("/category/getSingle/:id",auth,checkRole("admin","super_admin"),categoryController.getSingleCategory);
+router.patch("/category/update/:id",auth,checkRole("admin","super_admin"),categoryController.updateCategory);
+router.delete("/category/delete/:id",auth,checkRole("admin","super_admin"),categoryController.deleteCategory);
+
+//service
 router.post("/addService",auth,checkRole("admin","super_admin"),serviceController.add);
+router.get("/service/getAllService",auth,checkRole("admin","super_admin"),serviceController.getAllService);
+router.get("/service/getSingle/:id",auth,checkRole("admin","super_admin"),serviceController.getSingleService);
+router.patch("/service/update/:id",auth,checkRole("admin","super_admin"),serviceController.updateService);
+router.delete("/service/delete/:id",auth,checkRole("admin","super_admin"),serviceController.deleteService);
 
 export default router;

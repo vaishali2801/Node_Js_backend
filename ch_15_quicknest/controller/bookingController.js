@@ -42,13 +42,10 @@ const create = async (req, res, next) => {
             totalPrice: service.price,
         });
         await newBooking.save();
-        const savedBooking = await Booking
-            .findById(newBooking._id)
-            .populate({
-                path: "serviceId",
-                select: "name price duration -_id"
-            });
-        res.status(201).json({ success: true, message: "booking confirm successfully", savedBooking });
+
+        await  newBooking.populate([{  path: "serviceId",
+                select: "name price duration -_id"},{path:"userId",select:"name email"}]);
+        res.status(201).json({ success: true, message: "booking confirm successfully", newBooking });
 
     } catch (error) {
         next(new HttpError(error.message, 500));
