@@ -51,5 +51,86 @@ const create = async (req, res, next) => {
         next(new HttpError(error.message, 500));
     }
 }
+const getAllBooking = async(req,res,next)=>{
+    try {
+        let bookings;
+        let Role = req.user.role;
 
-export default { create }
+        if(Role === "admin"|| Role === "super_admin"){
+            bookings = await Booking.find({}).populate([
+                {path:"serviceId",select:"name price duration description"},
+                {path:"userId",select:"name email phone"},
+            ])
+        }else if(Role === "customer"){
+            bookings = await Booking.find({userId:req.user._id})
+            .populate("serviceId","name price duration");
+        }else{
+            return next(new HttpError("unAuthorization access",401));
+        }
+        if(bookings.length===0){
+            return res.status(200)
+            .json({success:true,message:"booking data not found"});
+        }
+        res.status(200).
+        json({success:true,message:"all booking fetched successfully!!!!",bookings});
+    } catch (error) {
+        next(new HttpError(error.message,500));
+    }
+}
+const getAllService = async(req,res,next)=>{
+    try {
+        let bookings;
+        let Role = req.user.role;
+        const serviceId = req.params.id;
+
+        if(Role === "admin" || Role === "super_admin"){
+            bookings = await Booking.find({serviceId})
+            .populate([
+                {path:"serviceId",select:"name price duration description"},
+                {path:"userId",select:"name email phone"}    
+            ]);
+        }else if(Role === "customer"){
+            bookings = await Booking.find({userId:req.user._id,serviceId:serviceId})
+            .populate("serviceId","name price duration description");
+        }else{
+            return next(new HttpError("unAuthorization access",401));
+        }
+        if(bookings.length===0){
+            return res.status(200)
+            .json({success:true,message:"booking data not found"});
+        }
+        res.status(200).
+        json({success:true,message:"all booking service fetched successfully!!!!",bookings});
+    } catch (error) {
+        next(new HttpError(error.message,500));
+    }
+}
+const getAllCategory = async(req,res,next)=>{
+    try {
+        let bookings;
+        let Role = req.user.role;
+        const categoryId = req.params.id;
+
+        if(Role === "admin" || Role === "super_admin"){
+            bookings = await Booking.find({categoryId}).populate([
+                {path:"categoryId",select:"name description"},
+                {path:"userId",select:"name email phone"}
+            ])
+        }else if(Role === "customer"){
+            bookings = await Booking.find({userId:req.user._id,categoryId:categoryId})
+            .populate("categoryId","name description");
+        }else{
+            return next(new HttpError("unAuthorization access",401));
+        }
+        if(bookings.length===0){
+            return res.status(200)
+            .json({success:true,message:"booking data not found"});
+        }
+        res.status(200).
+        json({success:true,message:"all booking category fetched successfully!!!!",bookings});
+    } catch (error) {
+        next(new HttpError(error.message,500));
+    }
+}
+
+export default { create,getAllBooking ,getAllService,getAllCategory}
