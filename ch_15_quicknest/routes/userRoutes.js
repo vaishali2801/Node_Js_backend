@@ -4,6 +4,7 @@ import auth from "../middleware/auth.js";
 import validate from "../middleware/validate.js";
 import { updateUserSchema,createUserSchema } from "../validation/UserSchema.js";
 import userController from "../controller/userController.js";
+import providerController from "../controller/providerController.js";
 import upload from "../middleware/upload.js";
 
 const router = express.Router();
@@ -16,4 +17,6 @@ router.post("/logOutAll",auth,userController.logOutAll);
 router.patch("/update",auth,upload.single("profilePic"),validate(updateUserSchema),userController.updateUser);
 router.delete("/delete",auth,userController.deleteUser);
 
+//provider
+router.post("/addProvider",auth,providerController.addProvider);
 export default router;
