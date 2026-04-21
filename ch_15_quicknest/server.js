@@ -8,6 +8,7 @@ import HttpError from "./middleware/HttpError.js";
 import router from "./routes/userRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import bookingRouter from "./routes/bookingRoutes.js";
+import providerRouter from "./routes/providerRoutes.js";
 
 const app = express();
 
@@ -17,6 +18,7 @@ app.use(express.json());
 app.use("/user", router);
 app.use("/admin", adminRoutes);
 app.use("/booking", bookingRouter);
+app.use("/provider", providerRouter);
 //server
 app.get("/", (req, res) => {
     res.json("hello form server");

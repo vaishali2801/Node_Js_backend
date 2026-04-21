@@ -17,6 +17,4 @@ router.post("/logOutAll",auth,userController.logOutAll);
 router.patch("/update",auth,upload.single("profilePic"),validate(updateUserSchema),userController.updateUser);
 router.delete("/delete",auth,userController.deleteUser);
 
-//provider
-router.post("/addProvider",auth,providerController.addProvider);
 export default router;

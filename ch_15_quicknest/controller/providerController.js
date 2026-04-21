@@ -2,8 +2,10 @@ import HttpError from "../middleware/HttpError.js";
 import User from "../model/userModel.js";
 import Provider from "../model/Provider.js";
 import Service from "../model/Services.js";
+import sendEmail from "../utils/sendEmail.js";
+import generateEmailTemplate from "../services/emailTemplate.js";
 
-const addProvider = async (req, res, next) => {
+const registerAsProvider = async (req, res, next) => {
     try {
         const userId = req.user.id;
 
@@ -14,7 +16,19 @@ const addProvider = async (req, res, next) => {
 
         const existingProvider = await Provider.findOne({ userId });
         if (existingProvider) {
-            return next(new HttpError("already provider register", 208));
+            user.role = "provider";
+            await user.save();
+            await sendEmail({
+                to: user.email,
+                subject: "Already Registered as Provider",
+                html: generateEmailTemplate({
+                    userName: user.name,
+                    subject: "Provider Already Exists"
+                })
+            });
+            return res.status(200).json({
+                message: "Provider already exists, role updated",
+            });
         }
 
         const { services, documents, experience } = req.body;
@@ -37,8 +51,17 @@ const addProvider = async (req, res, next) => {
             experience,
             documents
         });
-
         await newProvider.save();
+        user.role = "provider";
+        await user.save();
+        await sendEmail({
+            to: user.email,
+            subject: "Welcome Provider 🎉",
+            html: generateEmailTemplate({
+                userName: user.name,
+                subject: "You are now a Provider 🚀"
+            })
+        });
 
         res.status(201).json({
             success: true,
@@ -50,4 +73,4 @@ const addProvider = async (req, res, next) => {
         next(new HttpError(error.message, 500));
     }
 };
-export default {addProvider}    
+export default { registerAsProvider }    
