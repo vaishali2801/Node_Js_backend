@@ -81,11 +81,29 @@ const logOutAll = async (req, res, next) => {
 
 const allUser = async (req, res, next) => {
     try {
+        const {role,limit,skip,sortBy}=req.query;
+
+        let query = {};
+
+        let sortByValue = {};
+
+        if(role){
+            query.role = role;
+        }
+
+        const user = await User.find(query).limit(parseInt(limit)||5).skip(parseInt(skip)||0).sort(sortByValue);
+
+        if(sortBy){
+            const [field,order] = sortBy.split(":");
+            sortByValue[field] = order === "desc" ? -1 : 1;
+        }
         const users = await User.find({});
+
         if (users.length === 0) {
             return next(new HttpError("user not found", 404));
         }
-        res.status(200).json({ success: true, message: "user data fetched successfully!!", users });
+
+        res.status(200).json({ success: true, message: "user data fetched successfully!!",length:users.length, users });
     } catch (error) {
         next(new HttpError(error.message, 500));
     }

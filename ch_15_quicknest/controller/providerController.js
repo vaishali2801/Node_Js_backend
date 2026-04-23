@@ -17,7 +17,7 @@ const registerAsProvider = async (req, res, next) => {
         const existingProvider = await Provider.findOne({ userId });
         if (existingProvider) {
             user.role = "provider";
-            await user.save();
+            await user.save();  
             await sendEmail({
                 to: user.email,
                 subject: "Already Registered as Provider",
@@ -51,8 +51,9 @@ const registerAsProvider = async (req, res, next) => {
             experience,
             documents
         });
-        await newProvider.save();
         user.role = "provider";
+        await newProvider.save();
+        
         await user.save();
         await sendEmail({
             to: user.email,
@@ -73,4 +74,52 @@ const registerAsProvider = async (req, res, next) => {
         next(new HttpError(error.message, 500));
     }
 };
-export default { registerAsProvider }    
+const getProvider = async(req,res,next)=>{
+    try {
+        const {isVerified} = req.query;
+        let query = {};
+
+        if(isVerified != undefined){
+            query.isVerified = isVerified === "true";
+        }
+        const provider = await Provider.find(query).populate([
+            {path:"userId",select:"name email phone"},
+            {path:"services",select:"name"}
+        ]);
+        if(!provider.length){
+            return next(new HttpError("no provider data found",404));
+        }
+        res.status(200).json({
+            success: true,
+            message: "providers fetched successfully",
+            provider
+        });
+
+    } catch (error) {
+        next(new HttpError(error.message, 500));
+    }
+}
+const getProviderById = async(req,res,next)=>{
+    try {
+        const id = req.params.id;
+
+        const provider = await Provider.findById(id);
+        if(!provider){
+            return next(new HttpError("provider not found",404))
+        }
+        res.status(200).json({success:true,message:"provider fetched successfully!",provider})
+    } catch (error) {
+        next(new HttpError(error.message, 500));
+    }
+}
+// const updateProvider = async(req,res,next)=>{
+//     try {
+//         const provider = await Provider.findById(req.params.id);
+//         if(!provider){
+//             return 
+//         }
+//     } catch (error) {
+//         next(new HttpError(error.message, 500));
+//     }
+// }
+export default { registerAsProvider,getProvider}    

@@ -1,6 +1,7 @@
 import Booking from "../model/Booking.js";
 import HttpError from "../middleware/HttpError.js";
 import Service from "../model/Services.js";
+import sendWhatsAppMessage from "../utils/sendWhatsAppMessage.js";
 
 const create = async (req, res, next) => {
     try {
@@ -46,7 +47,10 @@ const create = async (req, res, next) => {
         await newBooking.populate([{
             path: "serviceId",
             select: "name price duration -_id"
-        }, { path: "userId", select: "name email" }]);
+        }, { path: "userId", select: "name email phone" }]);
+
+        await sendWhatsAppMessage(newBooking.userId.phone,"booking has been created successfully!");
+
         res.status(201).json({ success: true, message: "booking confirm successfully", newBooking });
 
     } catch (error) {
