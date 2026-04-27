@@ -2,7 +2,7 @@
 import HttpError from "../middleware/HttpError.js";
 import User from "../model/userModel.js";
 import cloudinary from "../config/cloudinary.js";
-import sendMail from "../utils/sendEmail.js";
+import sendEmail from "../utils/sendEmail.js";
 import generateEmailTemplate from "../services/emailTemplate.js";
 
 const addUser = async (req, res, next) => {
@@ -22,6 +22,14 @@ const addUser = async (req, res, next) => {
 
         await user.save();
         const token = await user.generateAuthToken();
+        await sendEmail({
+            to: user.email,
+            subject: "Welcome user 🎉",
+            html: generateEmailTemplate({
+                userName: user.name,
+                subject: "You are now a user 🚀"
+            })
+        });
         res.status(201).json({ success: true, message: "added successfully!", user, token });
     } catch (error) {
         next(new HttpError(error.message, 500));

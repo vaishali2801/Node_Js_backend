@@ -9,11 +9,20 @@ import router from "./routes/userRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import bookingRouter from "./routes/bookingRoutes.js";
 import providerRouter from "./routes/providerRoutes.js";
+import helmet from "helmet";
+import hpp from "hpp";
+import {rateLimit} from "express-rate-limit";
 
 const app = express();
 
 //convert json data
 app.use(express.json());
+
+app.use(rateLimit());
+
+app.use(helmet());
+
+app.use(hpp());
 //routes
 app.use("/user", router);
 app.use("/admin", adminRoutes);
