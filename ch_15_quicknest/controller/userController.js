@@ -3,7 +3,8 @@ import HttpError from "../middleware/HttpError.js";
 import User from "../model/userModel.js";
 import cloudinary from "../config/cloudinary.js";
 import sendEmail from "../utils/sendEmail.js";
-import generateEmailTemplate from "../services/emailTemplate.js";
+import {getWelcomeEmailTemplate,  getForgotPasswordEmailTemplate} from "../services/emailTemplate.js";
+import crypto from "crypto";
 
 const addUser = async (req, res, next) => {
     try {
@@ -25,7 +26,7 @@ const addUser = async (req, res, next) => {
         await sendEmail({
             to: user.email,
             subject: "Welcome user 🎉",
-            html: generateEmailTemplate({
+            html: getWelcomeEmailTemplate({
                 userName: user.name,
                 subject: "You are now a user 🚀"
             })
@@ -182,4 +183,76 @@ const deleteUser = async (req, res, next) => {
         next(new HttpError(error.message, 500));
     }
 }
-export default { addUser, login, authLogin, logOut, logOutAll, allUser, updateUser, deleteUser };
+
+const forgotPassword = async(req,res,next)=>{
+    try {
+        const { email } = req.body;
+
+        const user = await User.findOne({email});
+
+        if(!user){
+            return next(new HttpError("user not found",404));
+        }
+        const resetToken = crypto.randomBytes(32).toString("hex");
+
+        const hashedToken = crypto
+        .createHash("sha256")
+        .update(resetToken)
+        .digest("hex");
+
+        user.resetPasswordToken = hashedToken;
+        user.resetPasswordExpiry = Date.now() + 15 * 60 * 1000;
+
+        await user.save();
+
+        const resetLink = `http://localhost:5001/user/reset-password/${resetToken}`;
+
+        await sendEmail({
+            to:user.email,
+            subject:"reset your password",
+            html: getForgotPasswordEmailTemplate(user.name, resetLink)
+        })
+        
+        res.status(200).json({success:true,message:"for reset password email sent successfully!!",resetLink});
+    } catch (error) {
+        next(new HttpError(error.message, 500));
+    }
+}
+const resetPassword = async(req,res,next)=>{
+    try {
+        const { token }= req.params;
+        const { newPassword , confirmPassword } = req.body;
+
+        if(newPassword !== confirmPassword){
+            return next(new HttpError("this password not match",400));
+        }
+        if (newPassword.length < 6) {
+            return next(new HttpError("Password must be at least 6 characters", 400));
+        }
+
+        const hashedToken = crypto
+        .createHash("sha256")
+        .update(token)
+        .digest("hex");
+
+        const user = await User.findOne({
+            resetPasswordToken:hashedToken,
+            resetPasswordExpiry:{$gt:Date.now()}
+        });
+
+        if(!user){
+            return next(new HttpError("Token is invalid or expired!!",400));
+        }
+
+        user.password = confirmPassword;
+        user.resetPasswordToken = null;
+        user.resetPasswordExpiry = null;
+
+        await user.save();
+
+        res.status(200).json({success:true,message:"reset password successfully!"})
+    } catch (error) {
+        next(new HttpError(error.message, 500));
+    }
+}
+export default { addUser, login, authLogin, logOut, logOutAll, allUser, updateUser, deleteUser,forgotPassword,resetPassword };

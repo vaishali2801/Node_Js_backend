@@ -3,7 +3,7 @@ import User from "../model/userModel.js";
 import Provider from "../model/Provider.js";
 import Service from "../model/Services.js";
 import sendEmail from "../utils/sendEmail.js";
-import generateEmailTemplate from "../services/emailTemplate.js";
+import {getProviderRegistrationEmailTemplate} from "../services/emailTemplate.js";
 
 const registerAsProvider = async (req, res, next) => {
     try {
@@ -21,7 +21,7 @@ const registerAsProvider = async (req, res, next) => {
             await sendEmail({
                 to: user.email,
                 subject: "Already Registered as Provider",
-                html: generateEmailTemplate({
+                html: getProviderRegistrationEmailTemplate({
                     userName: user.name,
                     subject: "Provider Already Exists"
                 })
@@ -58,7 +58,7 @@ const registerAsProvider = async (req, res, next) => {
         await sendEmail({
             to: user.email,
             subject: "Welcome Provider 🎉",
-            html: generateEmailTemplate({
+            html: getProviderRegistrationEmailTemplate({
                 userName: user.name,
                 subject: "You are now a Provider 🚀"
             })
@@ -112,14 +112,14 @@ const getProviderById = async(req,res,next)=>{
         next(new HttpError(error.message, 500));
     }
 }
-// const updateProvider = async(req,res,next)=>{
-//     try {
-//         const provider = await Provider.findById(req.params.id);
-//         if(!provider){
-//             return 
-//         }
-//     } catch (error) {
-//         next(new HttpError(error.message, 500));
-//     }
-// }
-export default { registerAsProvider,getProvider}    
+const updateProvider = async(req,res,next)=>{
+    try {
+        const provider = await Provider.findById(req.params.id);
+        if(!provider){
+            return 
+        }
+    } catch (error) {
+        next(new HttpError(error.message, 500));
+    }
+}
+export default { registerAsProvider,getProvider,updateProvider}    

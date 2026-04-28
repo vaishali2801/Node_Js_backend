@@ -17,4 +17,6 @@ router.post("/logOutAll",auth,userController.logOutAll);
 router.patch("/update",auth,upload.single("profilePic"),validate(updateUserSchema),userController.updateUser);
 router.delete("/delete",auth,userController.deleteUser);
 
+router.post("/forgot-password",userController.forgotPassword);
+router.post("/reset-password/:token",userController.resetPassword);
 export default router;

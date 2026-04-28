@@ -13,7 +13,6 @@ const port = 5002;
 app.get("/", (req, res) => {
     res.status(200).json("hello from server");
 });
-app.use("/add", studentRoute);
 //undefined route
 app.use((req,res,next)=>{
     next(new HttpError("route not found",404));
