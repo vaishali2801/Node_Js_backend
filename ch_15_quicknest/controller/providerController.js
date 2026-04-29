@@ -1,9 +1,11 @@
+import mongoose from "mongoose";
 import HttpError from "../middleware/HttpError.js";
 import User from "../model/userModel.js";
 import Provider from "../model/Provider.js";
 import Service from "../model/Services.js";
 import sendEmail from "../utils/sendEmail.js";
-import {getProviderRegistrationEmailTemplate} from "../services/emailTemplate.js";
+import { getProviderRegistrationEmailTemplate } from "../services/emailTemplate.js";
+import Booking from "../model/Booking.js";
 
 const registerAsProvider = async (req, res, next) => {
     try {
@@ -17,7 +19,7 @@ const registerAsProvider = async (req, res, next) => {
         const existingProvider = await Provider.findOne({ userId });
         if (existingProvider) {
             user.role = "provider";
-            await user.save();  
+            await user.save();
             await sendEmail({
                 to: user.email,
                 subject: "Already Registered as Provider",
@@ -53,7 +55,7 @@ const registerAsProvider = async (req, res, next) => {
         });
         user.role = "provider";
         await newProvider.save();
-        
+
         await user.save();
         await sendEmail({
             to: user.email,
@@ -74,20 +76,20 @@ const registerAsProvider = async (req, res, next) => {
         next(new HttpError(error.message, 500));
     }
 };
-const getProvider = async(req,res,next)=>{
+const getProvider = async (req, res, next) => {
     try {
-        const {isVerified} = req.query;
+        const { isVerified } = req.query;
         let query = {};
 
-        if(isVerified != undefined){
+        if (isVerified != undefined) {
             query.isVerified = isVerified === "true";
         }
         const provider = await Provider.find(query).populate([
-            {path:"userId",select:"name email phone"},
-            {path:"services",select:"name"}
+            { path: "userId", select: "name email phone" },
+            { path: "services", select: "name" }
         ]);
-        if(!provider.length){
-            return next(new HttpError("no provider data found",404));
+        if (!provider.length) {
+            return next(new HttpError("no provider data found", 404));
         }
         res.status(200).json({
             success: true,
@@ -99,27 +101,49 @@ const getProvider = async(req,res,next)=>{
         next(new HttpError(error.message, 500));
     }
 }
-const getProviderById = async(req,res,next)=>{
+const getProviderById = async (req, res, next) => {
     try {
         const id = req.params.id;
 
         const provider = await Provider.findById(id);
-        if(!provider){
-            return next(new HttpError("provider not found",404))
+        if (!provider) {
+            return next(new HttpError("provider not found", 404))
         }
-        res.status(200).json({success:true,message:"provider fetched successfully!",provider})
+        res.status(200).json({ success: true, message: "provider fetched successfully!", provider })
     } catch (error) {
         next(new HttpError(error.message, 500));
     }
 }
-const updateProvider = async(req,res,next)=>{
+
+const getProviderBooking = async(req,res,next)=>{
     try {
-        const provider = await Provider.findById(req.params.id);
-        if(!provider){
-            return 
+        const userId = req.params.id || req.user._id;
+
+        const user = await Provider.findById(userId);
+
+        const role = req.user.role
+
+        if(!user){
+            return next(new HttpError("user not found",404));
         }
+
+        const bookings = await Booking.find({providerId:user._id});
+
+        if(!bookings || bookings.length === 0){
+            return next(new HttpError("booking not found",404));
+        }
+        
+        if(role === "provider"){
+            if(bookings[0].providerId.toString() !== req.user._id){
+            return next(new HttpError("with this provider not access",400));
+            }
+        }
+
+        res.status(200).json({success:true,message:"booking fetched successfully!!",bookings});
+    
     } catch (error) {
         next(new HttpError(error.message, 500));
     }
 }
-export default { registerAsProvider,getProvider,updateProvider}    
+
+export default { registerAsProvider, getProvider, updateProvider, deleteProvider,getProviderBooking }    

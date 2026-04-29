@@ -5,7 +5,7 @@ import sendWhatsAppMessage from "../utils/sendWhatsAppMessage.js";
 
 const create = async (req, res, next) => {
     try {
-        const { serviceId, bookingDate, timeSlot, notes } = req.body;
+        const { serviceId,providerId, bookingDate, timeSlot, notes } = req.body;
 
         const userId = req.user._id;
 
@@ -17,6 +17,9 @@ const create = async (req, res, next) => {
         if (!service.isActive) {
             return next(new HttpError("not active this service. try after few minutes", 409));
         }
+        if(!providerId){
+            return next(new HttpError("provider id not found",404));
+        }
 
         const startOfDay = new Date(bookingDate);
         startOfDay.setHours(0, 0, 0, 0);
@@ -26,6 +29,7 @@ const create = async (req, res, next) => {
 
         const existingBooking = await Booking.findOne({
             serviceId,
+            providerId,
             bookingDate: { $gte: startOfDay, $lt: endOfDay },
             timeSlot,
             status: { $in: ["pending", "confirmed"] }
@@ -37,6 +41,7 @@ const create = async (req, res, next) => {
         const newBooking = new Booking({
             userId,
             serviceId,
+            providerId,
             bookingDate: new Date(bookingDate),
             timeSlot,
             notes,
