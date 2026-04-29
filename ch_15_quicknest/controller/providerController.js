@@ -146,4 +146,4 @@ const getProviderBooking = async(req,res,next)=>{
     }
 }
 
-export default { registerAsProvider, getProvider, updateProvider, deleteProvider,getProviderBooking }    
+export default { registerAsProvider, getProvider,getProviderById, updateProvider, deleteProvider,getProviderBooking }    
