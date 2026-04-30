@@ -6,6 +6,7 @@ import Service from "../model/Services.js";
 import sendEmail from "../utils/sendEmail.js";
 import { getProviderRegistrationEmailTemplate } from "../services/emailTemplate.js";
 import Booking from "../model/Booking.js";
+import cloudinary from "../config/cloudinary.js";
 
 const registerAsProvider = async (req, res, next) => {
     try {
@@ -33,7 +34,7 @@ const registerAsProvider = async (req, res, next) => {
             });
         }
 
-        const { services, documents, experience } = req.body;
+        const { services, experience } = req.body;
 
         if (!services || !Array.isArray(services) || services.length === 0) {
             return next(new HttpError("service required!!", 400));
@@ -51,7 +52,8 @@ const registerAsProvider = async (req, res, next) => {
             userId,
             service: validService,
             experience,
-            documents
+            documents:req.file ? req.file.path : null,
+            cloudinary_id: req.file ? req.file.filename : null,
         });
         user.role = "provider";
         await newProvider.save();
@@ -114,36 +116,115 @@ const getProviderById = async (req, res, next) => {
         next(new HttpError(error.message, 500));
     }
 }
-
-const getProviderBooking = async(req,res,next)=>{
+const getBookingProvider = async (req, res, next) => {
     try {
-        const userId = req.params.id || req.user._id;
+        const role = req.user.role;
+        let bookings;
 
-        const user = await Provider.findById(userId);
+        if (role === "provider") {
+            const provider = await Provider.findOne({ userId: req.user._id });
 
-        const role = req.user.role
-
-        if(!user){
-            return next(new HttpError("user not found",404));
-        }
-
-        const bookings = await Booking.find({providerId:user._id});
-
-        if(!bookings || bookings.length === 0){
-            return next(new HttpError("booking not found",404));
-        }
-        
-        if(role === "provider"){
-            if(bookings[0].providerId.toString() !== req.user._id){
-            return next(new HttpError("with this provider not access",400));
+            if (!provider) {
+                return next(new HttpError("Provider not found", 404));
             }
+
+            bookings = await Booking.find({ providerId: provider._id });
+
+        } else if (role === "admin" || role === "super_admin") {
+
+            bookings = await Booking.find(); // admin gets all bookings
+
         }
 
-        res.status(200).json({success:true,message:"booking fetched successfully!!",bookings});
-    
+        if (!bookings || bookings.length === 0) {
+            return next(new HttpError("No bookings found", 404));
+        }
+
+        res.status(200).json({
+            success: true,
+            message: "Booking fetched successfully",
+            bookings
+        });
     } catch (error) {
         next(new HttpError(error.message, 500));
     }
 }
 
-export default { registerAsProvider, getProvider,getProviderById, updateProvider, deleteProvider,getProviderBooking }    
+const updateProvider = async (req, res, next) => {
+    try {
+        const allowedUser = req.params.id || req.user._id;
+
+        const provider = await User.findById(allowedUser);
+
+        if (!provider) {
+            return next(new HttpError("provider not found", 404));
+        }
+
+        const updates = Object.keys(req.body);
+        const allowed = ["experience", "documents", "services"];
+
+        const isValid = updates.every((field) => allowed.includes(field));
+
+        if (!isValid) {
+            return next(new HttpError("only allowed field can be updated", 400));
+        }
+
+        if (
+            req.user.role !== "admin" &&
+            req.user.role !== "super_admin" &&
+            req.user._id.toString() !== provider._id.toString()
+        ) {
+            return next(new HttpError("access denied", 403));
+        }
+
+        updates.forEach((update) => {
+            if (update !== "password") {
+                provider[update] = req.body[update];
+            }
+        });
+
+        if (req.file) {
+            if (provider.cloudinary_id) {
+                await cloudinary.uploader.destroy(provider.cloudinary_id);
+            }
+            provider.documents = req.file.path;
+            provider.cloudinary_id = req.file.filename;
+        }
+
+        await provider.save();
+
+        res.status(200).json({
+            success: true,
+            message: "provider update successfully",
+            provider
+        });
+
+    } catch (error) {
+        next(new HttpError(error.message, 500));
+    }
+};
+const deleteProvider = async (req, res, next) => {
+    try {
+        const allowedUser = req.params.id || req.user._id;
+        const provider = await User.findById(allowedUser);
+        if (!provider) {
+            return next(new HttpError("provider not found", 404));
+        }
+        if (
+            req.user.role !== "admin" &&
+            req.user.role !== "super_admin" &&
+            req.user._id.toString() !== provider._id.toString()) {
+            return next(new HttpError("access denied", 403));
+        }
+        if (provider.cloudinary_id) {
+            await cloudinary.uploader.destroy(provider.cloudinary_id);
+        }
+        await provider.deleteOne();
+
+        res.status(200).json({ success: true, message: "provider delete successfully!" })
+    } catch (error) {
+        next(new HttpError(error.message, 500));
+    }
+}
+
+export default { registerAsProvider, getProvider, getProviderById, getBookingProvider,updateProvider,deleteProvider }    

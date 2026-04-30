@@ -19,9 +19,11 @@ const providerSchema = new mongoose.Schema({
     documents:[
         {
             type:String,
-            required:true,
         }
     ],
+    cloudinary_id:{
+        type:String,
+    },
     isVerified:{
         type:Boolean,
         default:false
