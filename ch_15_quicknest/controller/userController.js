@@ -1,10 +1,12 @@
-
+import path from "path";
+import crypto from "crypto";
 import HttpError from "../middleware/HttpError.js";
 import User from "../model/userModel.js";
 import cloudinary from "../config/cloudinary.js";
 import sendEmail from "../utils/sendEmail.js";
-import {getWelcomeEmailTemplate,  getForgotPasswordEmailTemplate} from "../services/emailTemplate.js";
-import crypto from "crypto";
+import { getWelcomeEmailTemplate, getForgotPasswordEmailTemplate } from "../services/emailTemplate.js";
+import auditLogger from "../utils/auditLoggers.js";
+
 
 const addUser = async (req, res, next) => {
     try {
@@ -90,20 +92,20 @@ const logOutAll = async (req, res, next) => {
 
 const allUser = async (req, res, next) => {
     try {
-        const {role,limit,skip,sortBy}=req.query;
+        const { role, limit, skip, sortBy } = req.query;
 
         let query = {};
 
         let sortByValue = {};
 
-        if(role){
+        if (role) {
             query.role = role;
         }
 
-        const user = await User.find(query).limit(parseInt(limit)||5).skip(parseInt(skip)||0).sort(sortByValue);
+        const user = await User.find(query).limit(parseInt(limit) || 5).skip(parseInt(skip) || 0).sort(sortByValue);
 
-        if(sortBy){
-            const [field,order] = sortBy.split(":");
+        if (sortBy) {
+            const [field, order] = sortBy.split(":");
             sortByValue[field] = order === "desc" ? -1 : 1;
         }
         const users = await User.find({});
@@ -112,7 +114,7 @@ const allUser = async (req, res, next) => {
             return next(new HttpError("user not found", 404));
         }
 
-        res.status(200).json({ success: true, message: "user data fetched successfully!!",length:users.length, users });
+        res.status(200).json({ success: true, message: "user data fetched successfully!!", length: users.length, users });
     } catch (error) {
         next(new HttpError(error.message, 500));
     }
@@ -178,27 +180,36 @@ const deleteUser = async (req, res, next) => {
         }
         await user.deleteOne();
 
+        await auditLogger({
+            action: "USER_DELETE",
+            performedBy: req.user._id,
+            module: user.role,
+            targetedId: user._id,
+            Ip: req.ip,
+            userAgent: req.get("User-Agent"),
+        });
+
         res.status(200).json({ success: true, message: "user delete successfully!" })
     } catch (error) {
         next(new HttpError(error.message, 500));
     }
 }
 
-const forgotPassword = async(req,res,next)=>{
+const forgotPassword = async (req, res, next) => {
     try {
         const { email } = req.body;
 
-        const user = await User.findOne({email});
+        const user = await User.findOne({ email });
 
-        if(!user){
-            return next(new HttpError("user not found",404));
+        if (!user) {
+            return next(new HttpError("user not found", 404));
         }
         const resetToken = crypto.randomBytes(32).toString("hex");
 
         const hashedToken = crypto
-        .createHash("sha256")
-        .update(resetToken)
-        .digest("hex");
+            .createHash("sha256")
+            .update(resetToken)
+            .digest("hex");
 
         user.resetPasswordToken = hashedToken;
         user.resetPasswordExpiry = Date.now() + 15 * 60 * 1000;
@@ -208,40 +219,40 @@ const forgotPassword = async(req,res,next)=>{
         const resetLink = `http://localhost:5001/user/reset-password/${resetToken}`;
 
         await sendEmail({
-            to:user.email,
-            subject:"reset your password",
+            to: user.email,
+            subject: "reset your password",
             html: getForgotPasswordEmailTemplate(user.name, resetLink)
         })
-        
-        res.status(200).json({success:true,message:"for reset password email sent successfully!!",resetLink});
+
+        res.status(200).json({ success: true, message: "for reset password email sent successfully!!", resetLink });
     } catch (error) {
         next(new HttpError(error.message, 500));
     }
 }
-const resetPassword = async(req,res,next)=>{
+const resetPassword = async (req, res, next) => {
     try {
-        const { token }= req.params;
-        const { newPassword , confirmPassword } = req.body;
+        const { token } = req.params;
+        const { newPassword, confirmPassword } = req.body;
 
-        if(newPassword !== confirmPassword){
-            return next(new HttpError("this password not match",400));
+        if (newPassword !== confirmPassword) {
+            return next(new HttpError("this password not match", 400));
         }
         if (newPassword.length < 6) {
             return next(new HttpError("Password must be at least 6 characters", 400));
         }
 
         const hashedToken = crypto
-        .createHash("sha256")
-        .update(token)
-        .digest("hex");
+            .createHash("sha256")
+            .update(token)
+            .digest("hex");
 
         const user = await User.findOne({
-            resetPasswordToken:hashedToken,
-            resetPasswordExpiry:{$gt:Date.now()}
+            resetPasswordToken: hashedToken,
+            resetPasswordExpiry: { $gt: Date.now() }
         });
 
-        if(!user){
-            return next(new HttpError("Token is invalid or expired!!",400));
+        if (!user) {
+            return next(new HttpError("Token is invalid or expired!!", 400));
         }
 
         user.password = confirmPassword;
@@ -250,9 +261,9 @@ const resetPassword = async(req,res,next)=>{
 
         await user.save();
 
-        res.status(200).json({success:true,message:"reset password successfully!"})
+        res.status(200).json({ success: true, message: "reset password successfully!" })
     } catch (error) {
         next(new HttpError(error.message, 500));
     }
 }
-export default { addUser, login, authLogin, logOut, logOutAll, allUser, updateUser, deleteUser,forgotPassword,resetPassword };
+export default { addUser, login, authLogin, logOut, logOutAll, allUser, updateUser, deleteUser, forgotPassword, resetPassword };

@@ -8,11 +8,14 @@ import validate from "../middleware/validate.js";
 import userController from "../controller/userController.js";
 import serviceController from "../controller/serviceController.js";
 import categorySchema from "../validation/categorySchema.js";
+import adminController from "../controller/adminController.js";
+import providerController from "../controller/providerController.js";
 
 const router = express.Router();
 
 router.patch("/update/:id",auth,checkRole("admin", "super_admin"),validate(updateUserSchema),userController.updateUser);
 router.delete("/delete/:id", auth, checkRole("admin", "super_admin"), userController.deleteUser);
+router.delete("/delete-provider/:id", auth, checkRole("admin", "super_admin"), providerController.deleteProvider);
 router.get("/allUser", auth,checkRole("admin", "super_admin"), userController.allUser);
 
 //category
@@ -28,5 +31,8 @@ router.get("/service/getAllService",auth,checkRole("admin","super_admin"),servic
 router.get("/service/getSingle/:id",auth,checkRole("admin","super_admin"),serviceController.getSingleService);
 router.patch("/service/update/:id",auth,checkRole("admin","super_admin"),serviceController.updateService);
 router.delete("/service/delete/:id",auth,checkRole("admin","super_admin"),serviceController.deleteService);
+
+//admin dashboard
+router.get("/dashboardStatics",auth,checkRole("admin","super_admin"),adminController.dashBoardStatics);
 
 export default router;
