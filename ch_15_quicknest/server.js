@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 dotenv.config({ path: "./.env" });
 import express from "express";
+import moment from "moment"
 import connectDB from "./config/db.js";
 
 import HttpError from "./middleware/HttpError.js";
@@ -9,12 +10,15 @@ import router from "./routes/userRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import bookingRouter from "./routes/bookingRoutes.js";
 import providerRouter from "./routes/providerRoutes.js";
+import webhookRoutes from "./routes/webHookRoutes.js";
+
 import helmet from "helmet";
 import hpp from "hpp";
 import {rateLimit} from "express-rate-limit";
 
 const app = express();
-
+app.use("/payment/webhook",express.raw({type: "application/json",}));
+console.log(moment().format("YYYY-MM-DD"));
 //convert json data
 app.use(express.json());
 
@@ -28,6 +32,7 @@ app.use("/user", router);
 app.use("/admin", adminRoutes);
 app.use("/booking", bookingRouter);
 app.use("/provider", providerRouter);
+app.use(webhookRoutes);
 //server
 app.get("/", (req, res) => {
     res.json("hello form server");
