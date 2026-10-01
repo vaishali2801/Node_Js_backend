@@ -3,7 +3,7 @@ import studentController from "../controller/studentController.js"
 
 const router = express.Router();
 
-router.post("/", studentController.add);
+router.post("/add", studentController.add);
 router.get("/allStudent", studentController.allStudent);
 router.get("/students/:id", studentController.studentId);
 router.patch("/:id", studentController.updateStudentData);
